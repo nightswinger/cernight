@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Cernight::Configuration::Dsl
   module Common
     attr_accessor(
@@ -6,7 +8,7 @@ class Cernight::Configuration::Dsl
       :require_lowercase,
       :require_numbers,
       :require_symbols
-      )
+    )
 
     def password_policy(&block)
       block.call(self)
@@ -18,7 +20,7 @@ class Cernight::Configuration::Dsl
         require_symbols: @require_symbols
       }
 
-      @params[:policies]= { password_policy: policies }
+      @params[:policies] = { password_policy: policies }
     end
 
     def auto_verified_attributes(*args)
@@ -27,15 +29,16 @@ class Cernight::Configuration::Dsl
 
     def email_configuration(args)
       return unless args.is_a?(Hash)
+
       @params[:email_configuration] = args
     end
 
-    def schema(action=:create, &block)
+    def schema(_action = :create, &block)
       block.call(self)
       @params[:schema] = @schema_attributes
     end
 
-    def string(name, opt={})
+    def string(name, opt = {})
       params = {
         name: name,
         attribute_data_type: 'String'
