@@ -7,11 +7,10 @@ class User < Cernight::User
   set_client_id '16nuqqun1cq1e5382loahr1l1e'
 end
 
-user = User.find_by_username('testuser')
-puts user.custom
+user1 = User.find_by_username('testuser')
+user2 = User.find_by_username('foobar')
 
-users = User.all
-puts users.first.username
-
-u = User.create('tester', 'password', email: 'test@example.com')
-puts u.username
+p user2.nickname
+user2.nickname = 'hey'
+p user2.nickname
+# user2.save

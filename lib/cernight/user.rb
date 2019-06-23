@@ -9,14 +9,22 @@ module Cernight
 
     attr_reader :username
 
-    def initialize(username, attrs = {})
+    def initialize(username, attrs = [])
       @username = username
-      @attrs = attrs
+      @attrs = convert_attributes_to_hash(attrs)
 
-      @attrs.each do |attr|
-        name = attr[:name].include?('custom:') ? attr[:name].gsub('custom:', '') : attr[:name]
-        self.class.define_method(name) { attr[:value] }
+      @attrs.keys.each do |key|
+        define_singleton_method(key) { @attrs[key] }
+        define_singleton_method("#{key}=") { |arg| @attrs[key] = arg }
       end
+    end
+
+    def save
+      self.class.client.admin_update_user_attributes(
+        user_pool_id: self.class.user_pool_id,
+        username: @username,
+        user_attributes: convert_attributes_to_array(@attrs)
+      )
     end
 
     def update(args = {})
@@ -32,12 +40,24 @@ module Cernight
       )
     end
 
-    Cernight::RESERVED_ATTRIBUTES.each do |attr|
-      define_method(attr) { @attrs[attr.to_s] }
+    def convert_attributes_to_hash(array)
+      array.inject({}) do |attrs, v|
+        name = v[:name].include?('custom:') ? v[:name].gsub('custom:', '') : v[:name]
+        attrs.merge(name => v[:value])
+      end
+    end
+
+    def convert_attributes_to_array(hash)
+      hash.delete('sub')
+      hash.map { |v| { name: v[0], value: v[1] } }
     end
 
     Cernight::RESERVED_ATTRIBUTES.each do |attr|
-      define_method("#{attr}=") { |arg| @attrs[attr.to_s] = arg }
+      define_method(attr) { @attrs[attr] }
+    end
+
+    Cernight::RESERVED_ATTRIBUTES.each do |attr|
+      define_method("#{attr}=") { |arg| @attrs[attr] = arg }
     end
 
     class << self
